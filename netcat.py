@@ -129,6 +129,17 @@ def DH_Server_Handler(sock):
         print(data, state)
         response = b'Hey there!'
         sock.sendall(response)
+        #PSK
+        rec_PSK = sock.recv(3072).strip()
+        psk = b'myPSKkey_of_5037'
+        sha256_hash = hashlib.sha256()
+        sha256_hash.update(psk)
+        hash_PSK = sha256_hash.digest()
+        print("reveived PSK_hash is :", rec_PSK)
+        if hash_PSK != rec_PSK:
+            print("PSK authentication went wrong!")
+            return
+        print("Successful device authentication!")
     else:
         response = b'I do not understand you, hanging up'
         sock.sendall(response)
@@ -252,6 +263,14 @@ def DH_Client_Handler(sock):
     print('Received:\n{}'.format(received))
     # Check if the response is valid acording to our protocol
     if received == b'Hey there!':
+
+        #PSK
+        psk = b'myPSKkey_of_5037'
+        sha256_hash = hashlib.sha256()
+        sha256_hash.update(psk)
+        hash_PSK = sha256_hash.digest()
+        sock.sendall(hash_PSK)
+        print("send PSK_hash is :", hash_PSK)
         # Set the next request accordingly
         request = b'Params?'
         sock.sendall(request)
